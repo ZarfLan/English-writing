@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>英语四线格练习纸 English Writing Practice</title>
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 20px; font-family: Arial, sans-serif; }
+
+        .header {
+            text-align: center !important;
+            margin: 0 auto 15px auto;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            display: block;
+        }
+        .info {
+            text-align: center !important;
+            margin: 0 auto 20px auto;
+            font-size: 12px;
+            width: 100%;
+            display: block;
+        }
+
+        .line-group { position: relative; width: 100%; }
+        .line { position: absolute; width: 100%; left: 0; margin: 0; padding: 0; }
+
+        .control-panel {
+            position: fixed; top: 20px; right: 20px; background: white;
+            padding: 20px; border: 2px solid #333; border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;
+            width: 320px; max-height: 90vh; overflow-y: auto;
+        }
+        .control-panel h3 { margin-top: 0; color: #333; }
+        .control-group { margin-bottom: 15px; }
+        .control-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; }
+        .control-group input[type="range"], .control-group input[type="text"] { width: 100%; }
+        .control-group .value-display { display: inline-block; margin-left: 10px; color: #0066cc; font-weight: bold; }
+        .control-group button {
+            width: 100%; padding: 8px; margin-top: 5px;
+            background: #0066cc; color: white; border: none; border-radius: 4px;
+            cursor: pointer; font-size: 14px;
+        }
+        .control-group button:hover { background: #0052a3; }
+        .print-btn { background: #28a745 !important; margin-top: 10px; }
+        .print-btn:hover { background: #218838 !important; }
+
+        @media print {
+            body { padding: 0; }
+            .no-print { display: none !important; }
+            .control-panel { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="control-panel no-print">
+        <h3>📐 四线格设置</h3>
+        <div class="control-group">
+            <label>标题（可手动修改）：</label>
+            <input type="text" id="titleInput" value="英语四线格练习纸 English Writing Practice" />
+        </div>
+        <div class="control-group">
+            <label>内间距（线条间距）：<span class="value-display" id="innerValue">13</span>px</label>
+            <input type="range" id="innerSpacing" min="8" max="25" value="13" step="1" />
+        </div>
+        <div class="control-group">
+            <label>外间距（组间距）：<span class="value-display" id="outerValue">20</span>px</label>
+            <input type="range" id="outerSpacing" min="5" max="30" value="20" step="1" />
+        </div>
+        <div class="control-group">
+            <label>行数：<span class="value-display" id="rowsValue">16</span></label>
+            <input type="range" id="rowCount" min="10" max="30" value="16" step="1" />
+        </div>
+        <div class="control-group">
+            <button onclick="resetSettings()">🔄 恢复默认</button>
+            <button onclick="window.print()" class="print-btn">🖨️ 打印/保存PDF</button>
+        </div>
+        <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 12px; line-height: 1.5;">
+            <strong>💡 书写要点（四线三格 / 衡水体规则）：</strong><br>
+            • 字母右倾约5°，大写占上两格不顶第一线。<br>
+            • 小写 a/c/e/m/n/o/r/s/u/v/w/x/z 在中间一格（第2-4线间）；b/d/h/k/l 顶第1线；f/t 顶部在第一格中间，第二笔紧贴第二线下；g/j/p/q/y 下端抵第4线。<br>
+            • 单词间隔 ≈ 一个小写 a 的宽度；标点占中间一格，基线对齐。<br>
+        </div>
+    </div>
+
+    <div class="header" id="pageTitle">英语四线格练习纸 English Writing Practice</div>
+    <div class="info">姓名 Name：______________　　班级 Class：______________　　日期 Date：______________</div>
+    <div id="lineContainer"></div>
+
+    <div class="no-print" style="margin-top: 30px; padding: 15px; background-color: #f0f0f0; border-radius: 5px; line-height: 1.5;">
+        <strong>✏️ 占格提示：</strong><br>
+        • 基线：第4条线；x-height：第3-4线高度；上升部到第1线，下降部略出第4线。<br>
+    </div>
+
+    <script>
+        let innerSpacing = 13;
+        let outerSpacing = 20;
+        let rowCount = 16;
+
+        const innerInput = document.getElementById('innerSpacing');
+        const outerInput = document.getElementById('outerSpacing');
+        const rowsInput = document.getElementById('rowCount');
+        const innerValue = document.getElementById('innerValue');
+        const outerValue = document.getElementById('outerValue');
+        const rowsValue = document.getElementById('rowsValue');
+        const container = document.getElementById('lineContainer');
+        const titleInput = document.getElementById('titleInput');
+        const pageTitle = document.getElementById('pageTitle');
+
+        titleInput.addEventListener('input', () => {
+            pageTitle.textContent = titleInput.value || '英语四线格练习纸 English Writing Practice';
+            document.title = pageTitle.textContent;
+        });
+
+        function generateLines() {
+            container.innerHTML = '';
+            for (let i = 0; i < rowCount; i++) {
+                const lineGroup = document.createElement('div');
+                lineGroup.className = 'line-group';
+                const totalHeight = innerSpacing * 3;
+                lineGroup.style.height = totalHeight + 'px';
+                lineGroup.style.marginBottom = outerSpacing + 'px';
+                lineGroup.style.position = 'relative';
+
+                const line1 = document.createElement('div');
+                line1.className = 'line';
+                line1.style.top = '0px';
+                line1.style.borderTop = '1px solid #28a745';
+                lineGroup.appendChild(line1);
+
+                const line2 = document.createElement('div');
+                line2.className = 'line';
+                line2.style.top = innerSpacing + 'px';
+                line2.style.borderTop = '1px dashed #dc3545';
+                lineGroup.appendChild(line2);
+
+                const line3 = document.createElement('div');
+                line3.className = 'line';
+                line3.style.top = (innerSpacing * 2) + 'px';
+                line3.style.borderTop = '1px dashed #007bff';
+                lineGroup.appendChild(line3);
+
+                const line4 = document.createElement('div');
+                line4.className = 'line';
+                line4.style.top = (innerSpacing * 3) + 'px';
+                line4.style.borderTop = '1px solid #28a745';
+                lineGroup.appendChild(line4);
+
+                container.appendChild(lineGroup);
+            }
+        }
+
+        innerInput.addEventListener('input', function() {
+            innerSpacing = parseInt(this.value);
+            innerValue.textContent = innerSpacing;
+            generateLines();
+        });
+        outerInput.addEventListener('input', function() {
+            outerSpacing = parseInt(this.value);
+            outerValue.textContent = outerSpacing;
+            generateLines();
+        });
+        rowsInput.addEventListener('input', function() {
+            rowCount = parseInt(this.value);
+            rowsValue.textContent = rowCount;
+            generateLines();
+        });
+
+        function resetSettings() {
+            innerSpacing = 13;
+            outerSpacing = 20;
+            rowCount = 16;
+            innerInput.value = 13;
+            outerInput.value = 20;
+            rowsInput.value = 16;
+            innerValue.textContent = 13;
+            outerValue.textContent = 20;
+            rowsValue.textContent = 16;
+            titleInput.value = '英语四线格练习纸 English Writing Practice';
+            pageTitle.textContent = titleInput.value;
+            document.title = titleInput.value;
+            generateLines();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', generateLines);
+        } else {
+            generateLines();
+        }
+    </script>
+</body>
+</html>
