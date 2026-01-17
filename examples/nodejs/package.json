@@ -1,0 +1,21 @@
+{
+  "name": "redis-pubsub-example",
+  "version": "1.0.0",
+  "description": "Example demonstrating Redis pub/sub with one publisher and multiple subscribers",
+  "main": "publisher.js",
+  "scripts": {
+    "publisher": "node publisher.js",
+    "subscriber": "node subscriber.js"
+  },
+  "keywords": [
+    "redis",
+    "pubsub",
+    "publisher",
+    "subscriber"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "redis": "^4.6.0"
+  }
+}
